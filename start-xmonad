@@ -81,7 +81,7 @@ gnome-keyring-daemon --start --components=gpg,pkcs11,secrets,ssh
 
 # Remap caps lock to left control. This is not strictly speaking
 # xmonad related, but it's handy if you're a vim user.
-setxkbmap -option 'ctrl:nocaps'
+# setxkbmap -option 'ctrl:nocaps'
 
 # Change the default X cursor away from the "X"
 xsetroot -cursor_name left_ptr
