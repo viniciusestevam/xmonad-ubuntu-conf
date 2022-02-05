@@ -42,7 +42,7 @@ myModMask            = mod4Mask       -- changes the mod key to "super"
 myFocusedBorderColor = "#ff0000"      -- color of focused border
 myNormalBorderColor  = "#cccccc"      -- color of inactive border
 myBorderWidth        = 1              -- width of border around windows
-myTerminal           = "gnome-terminal"   -- which terminal software to use
+myTerminal           = "alacritty"   -- which terminal software to use
 
 {-
   Xmobar configuration variables. These settings control the appearance
@@ -83,10 +83,7 @@ myUrgentWSRight = "}"
 
 myWorkspaces =
   [
-    "7:Chat",  "8:Dbg", "9:Pix",
-    "4:Docs",  "5:Dev", "6:Web",
-    "1:Term",  "2:Hub", "3:Mail",
-    "0:VM",    "Extr1", "Extr2"
+    "1:dev", "2:dev", "3:docs", "4:term", "5:web","6:chat", "7:social", "8:music", "9:hub", "0:hub", "Extr1", "Extr2"
   ]
 
 startupWorkspace = "5:Dev"  -- which workspace do you want to be on after launch?
@@ -149,19 +146,11 @@ defaultLayouts = smartBorders(avoidStruts(
 -- We are just running Slack on the chat layout. Full screen it.
 chatLayout = avoidStruts(noBorders Full)
 
--- The GIMP layout uses the ThreeColMid layout. The traditional GIMP
--- floating panels approach is a bit of a challenge to handle with xmonad;
--- I find the best solution is to make the image you are working on the
--- master area, and then use this ThreeColMid layout to make the panels
--- tile to the left and right of the image. If you use GIMP 2.8, you
--- can use single-window mode and avoid this issue.
-gimpLayout = smartBorders(avoidStruts(ThreeColMid 1 (3/100) (3/4)))
 
 -- Here we combine our default layouts with our specific, workspace-locked
 -- layouts.
 myLayouts =
-  onWorkspace "7:Chat" chatLayout
-  $ onWorkspace "9:Pix" gimpLayout
+  onWorkspace "6:chat" chatLayout
   $ defaultLayouts
 
 
@@ -253,8 +242,8 @@ myManagementHooks = [
   , resource =? "stalonetray" --> doIgnore
   , className =? "rdesktop" --> doFloat
   , className =? "Gnome-calculator" --> doFloat
-  , (className =? "Slack") --> doF (W.shift "7:Chat")
-  , (className =? "Gimp-2.8") --> doF (W.shift "9:Pix")
+  , (className =? "Slack") --> doF (W.shift "6:chat")
+  , (className =? "Discord") --> doF (W.shift "6:chat")
   ]
 
 
