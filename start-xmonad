@@ -41,10 +41,14 @@ trayer \
   --edge top \
   --align right \
   --widthtype percent \
-  --width 7 \
+  --padding 10 \
+  --width 10 \
+  --height 19 \
   --transparent true \
   --tint 0x000000 \
-  --alpha 0
+  --expand true \
+  --iconspacing 10 \
+  --alpha 55 &
 
 # Activate primary screen 
 xrandr --output DP-2 --auto --primary

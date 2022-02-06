@@ -15,8 +15,7 @@ Config {
   -- the height of xmobar is controlled by the font you use.
   font = "xft:Ubuntu:weight=regular:pixelsize=12:antialias=true:hinting=true",
   additionalFonts = [ "xft:Mononoki:pixelsize=12:antialias=true:hinting=true"
-                      , "xft:Font Awesome 5 Free Solid:pixelsize=12"
-                      , "xft:Font Awesome 5 Brands:pixelsize=12"
+                      , "xft:FontAwesome:pixelsize=12"
                     ]
   bgColor = "black",
   fgColor = "grey",
@@ -32,21 +31,18 @@ Config {
   -- of your screen to make it play nicely with system tray, which we
   -- want to be taking up the remainer of the space on the right side
   -- of your screen.
-  position = TopSize L 90 5
+  position = TopSize L 100 5
 
   -- list of commands which gather information about your system for
   -- presentation in the bar. 
   commands = [ 
     -- Gather and format CPU usage information. 
     -- If it's above 50%, we consider it high usage and make it red.  
-    Run Cpu [
-      "-H","50",
-      "--high","red"
-    ] 10,
+    Run Cpu ["-t", "<fn=2>\xf108</fn> <total>%","-H","50","--high","red"] 20,
 
     -- Gather and format memory usage information
     Run Memory [
-      "-t","Mem: <used>mb"
+      "-t","<used>mb"
     ] 10,
 
     -- Date formatting
@@ -65,5 +61,5 @@ Config {
 
    -- Overall template for the layout of the xmobar contents. Note that
    -- space is significant and can be used to add padding.
-   template = "<icon=haskell.xpm/>      %UnsafeStdinReader% }{ %date%"
+   template = "<icon=haskell.xpm/>      %UnsafeStdinReader% }{  %cpu% <icon=memory.xpm/> %memory%    %date%         "
 }

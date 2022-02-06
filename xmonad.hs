@@ -23,21 +23,22 @@ import XMonad.Layout.NoBorders
 import XMonad.Layout.Circle
 import XMonad.Layout.LayoutModifier
 import XMonad.Layout.Spacing
-
-
-
-
 import XMonad.Layout.PerWorkspace (onWorkspace)
 import XMonad.Layout.Fullscreen
 import XMonad.Util.EZConfig
 import XMonad.Util.Run
-import XMonad.Hooks.DynamicLog
+import XMonad.Layout.ShowWName
+
+import Data.Maybe (fromJust)
+import XMonad.Hooks.DynamicLog (dynamicLogWithPP, wrap, xmobarPP, xmobarColor, shorten, PP(..), xmobarStrip, xmobarRaw)
 import XMonad.Actions.Plane
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.UrgencyHook
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 import Data.Ratio ((%))
+import XMonad.Util.NamedScratchpad
+import XMonad.Layout.Renamed
 
 {-
   Xmonad configuration variables. These settings control some of the
@@ -45,9 +46,9 @@ import Data.Ratio ((%))
 -}
 
 myModMask            = mod4Mask       -- changes the mod key to "super"
-myFocusedBorderColor = "#ff0000"      -- color of focused border
-myNormalBorderColor  = "#cccccc"      -- color of inactive border
-myBorderWidth        = 1              -- width of border around windows
+myFocusedBorderColor = "#fff"      -- color of focused border
+myNormalBorderColor  = "#ccc"      -- color of inactive border
+myBorderWidth        = 2              -- width of border around windows
 myTerminal           = "alacritty"   -- which terminal software to use
 
 {-
@@ -57,9 +58,10 @@ myTerminal           = "alacritty"   -- which terminal software to use
 
 myTitleColor     = "#eeeeee"  -- color of window title
 myTitleLength    = 80         -- truncate window title to this length
-myCurrentWSColor = "#e6744c"  -- color of active workspace
-myVisibleWSColor = "#c185a7"  -- color of inactive workspace
-myUrgentWSColor  = "#cc0000"  -- color of workspace with 'urgent' window
+myCurrentWSColor = "#fff"  -- color of active workspace
+myVisibleWSColor = "#8c8c8c"  -- color of inactive workspace
+myHiddenWSColor = "#4a4a4a" -- color of hidden workspaces
+myUrgentWSColor  = "#4a4a4a"  -- color of workspace with 'urgent' window
 myCurrentWSLeft  = "["        -- wrap active workspace with these
 myCurrentWSRight = "]"
 myVisibleWSLeft  = "("        -- wrap inactive workspace with these
@@ -89,10 +91,8 @@ myUrgentWSRight = "}"
 
 myWorkspaces =
   [
-    "1:dev", "2:dev", "3:docs", "4:term", "5:web","6:chat", "7:social", "8:music", "9:hub", "0:hub", "Extr1", "Extr2"
+    "dev", "dbg", "docs", "term", "web","chat", "social", "music", "hub"
   ]
-
-startupWorkspace = "5:Dev"  -- which workspace do you want to be on after launch?
 
 {-
   Layout configuration. In this section we identify which xmonad
@@ -111,57 +111,37 @@ mySpacing :: Integer -> l a -> XMonad.Layout.LayoutModifier.ModifiedLayout Spaci
 mySpacing i = spacingRaw False (Border i i i i) True (Border i i i i) True
 
 
--- Define group of default layouts used on most screens, in the
--- order they will appear.
--- "smartBorders" modifier makes it so the borders on windows only
--- appear if there is more than one visible window.
--- "avoidStruts" modifier makes it so that the layout provides
--- space for the status bar at the top of the screen.
+tall = renamed [Replace "Tall"]
+    $ mySpacing 8
+    $ ResizableTall 1 (3/100) (1/2) []
+
+mirrored = renamed [Replace "Mirror"]
+    $ mySpacing 8
+    $ Mirror (ResizableTall 1 (3/100) (1/2) [])
+
+noBordersFull = noBorders Full
+
+grid = Grid
+
+chatLayout = avoidStruts(noBorders Full)
+
 defaultLayouts = smartBorders(avoidStruts(
-  -- ResizableTall layout has a large master window on the left,
-  -- and remaining windows tile on the right. By default each area
-  -- takes up half the screen, but you can resize using "super-h" and
-  -- "super-l".
-  mySpacing 8 $ ResizableTall 1 (3/100) (1/2) []
-
-  -- Mirrored variation of ResizableTall. In this layout, the large
-  -- master window is at the top, and remaining windows tile at the
-  -- bottom of the screen. Can be resized as described above.
-  ||| Mirror (ResizableTall 1 (3/100) (1/2) [])
-
-  -- Full layout makes every window full screen. When you toggle the
-  -- active window, it will bring the active window to the front.
-  ||| noBorders Full
-
-  -- ThreeColMid layout puts the large master window in the center
-  -- of the screen. As configured below, by default it takes of 3/4 of
-  -- the available space. Remaining windows tile to both the left and
-  -- right of the master window. You can resize using "super-h" and
-  -- "super-l".
-  -- ||| ThreeColMid 1 (3/100) (3/4)
-
-  -- Circle layout places the master window in the center of the screen.
-  -- Remaining windows appear in a circle around it
-  -- ||| Circle
-
-  -- Grid layout tries to equally distribute windows in the available
-  -- space, increasing the number of columns and rows as necessary.
-  -- Master window is at top left.
-  ||| Grid))
+  tall
+  ||| mirrored
+  ||| noBordersFull
+  ||| grid ))
 
 
 -- Here we define some layouts which will be assigned to specific
 -- workspaces based on the functionality of that workspace.
 
 -- We are just running Slack on the chat layout. Full screen it.
-chatLayout = avoidStruts(noBorders Full)
 
 
 -- Here we combine our default layouts with our specific, workspace-locked
 -- layouts.
 myLayouts =
-  onWorkspace "6:chat" chatLayout
-  $ defaultLayouts
+  onWorkspace "chat" chatLayout defaultLayouts
 
 
 {-
@@ -253,7 +233,6 @@ myManagementHooks = [
   , className =? "rdesktop" --> doFloat
   , className =? "Gnome-calculator" --> doFloat
   , (className =? "Slack") --> doF (W.shift "6:chat")
-  , (className =? "Discord") --> doF (W.shift "6:chat")
   ]
 
 {-
@@ -262,32 +241,50 @@ myManagementHooks = [
   content into it via the logHook.
 -}
 
+
 main = do
-  xmproc <- spawnPipe "xmobar ~/.xmonad/xmobarrc"
+  xmproc1 <- spawnPipe "xmobar ~/.xmonad/xmobarrc"
+  xmproc2 <- spawnPipe "xmobar -x 1 ~/.xmonad/xmobarrc_"
+
   xmonad $ withUrgencyHook NoUrgencyHook $ def {
     focusedBorderColor = myFocusedBorderColor
   , normalBorderColor = myNormalBorderColor
+
   , terminal = myTerminal
+
   , borderWidth = myBorderWidth
+
   , layoutHook = myLayouts
+
   , workspaces = myWorkspaces
+
   , modMask = myModMask
+
   , handleEventHook = docksEventHook <+> fullscreenEventHook
+
   , startupHook = do
       setWMName "LG3D"
-      windows $ W.greedyView startupWorkspace
       spawn "~/.xmonad/startup-hook"
+
   , manageHook = manageHook def
       <+> composeAll myManagementHooks
       <+> manageDocks
-  , logHook = dynamicLogWithPP xmobarPP {
-      ppOutput = hPutStrLn xmproc
-      , ppTitle = xmobarColor myTitleColor "" . shorten myTitleLength
+
+  , logHook = dynamicLogWithPP $ namedScratchpadFilterOutWorkspacePP $ xmobarPP {
+      ppOutput = \x -> hPutStrLn xmproc1 x 
+                    >> hPutStrLn xmproc2 x
+
       , ppCurrent = xmobarColor myCurrentWSColor ""
-        . wrap myCurrentWSLeft myCurrentWSRight
+        . wrap ("<fc=" ++ myCurrentWSColor ++ ">") "</fc>"
+      , ppHiddenNoWindows = xmobarColor myHiddenWSColor ""
+        . wrap ("<fc=" ++ myHiddenWSColor ++ ">") "</fc>"
       , ppVisible = xmobarColor myVisibleWSColor ""
-        . wrap myVisibleWSLeft myVisibleWSRight
-      , ppUrgent = xmobarColor myUrgentWSColor ""
-        . wrap myUrgentWSLeft myUrgentWSRight
+        . wrap ("<fc=" ++ myVisibleWSColor ++ ">") "</fc>"
+      , ppTitle = xmobarColor myVisibleWSColor "" . shorten 20
+      , ppLayout = xmobarColor myVisibleWSColor ""
+      , ppTitleSanitize = xmobarStrip
+      , ppWsSep = "     "
+      , ppSep = "                       "
+      , ppOrder  = id
     }
   }
