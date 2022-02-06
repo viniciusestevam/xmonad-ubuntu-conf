@@ -21,6 +21,12 @@ import XMonad.Layout.ResizableTile
 import XMonad.Layout.ThreeColumns
 import XMonad.Layout.NoBorders
 import XMonad.Layout.Circle
+import XMonad.Layout.LayoutModifier
+import XMonad.Layout.Spacing
+
+
+
+
 import XMonad.Layout.PerWorkspace (onWorkspace)
 import XMonad.Layout.Fullscreen
 import XMonad.Util.EZConfig
@@ -101,6 +107,10 @@ startupWorkspace = "5:Dev"  -- which workspace do you want to be on after launch
   in the next section).
 -}
 
+mySpacing :: Integer -> l a -> XMonad.Layout.LayoutModifier.ModifiedLayout Spacing l a
+mySpacing i = spacingRaw False (Border i i i i) True (Border i i i i) True
+
+
 -- Define group of default layouts used on most screens, in the
 -- order they will appear.
 -- "smartBorders" modifier makes it so the borders on windows only
@@ -112,7 +122,7 @@ defaultLayouts = smartBorders(avoidStruts(
   -- and remaining windows tile on the right. By default each area
   -- takes up half the screen, but you can resize using "super-h" and
   -- "super-l".
-  ResizableTall 1 (3/100) (1/2) []
+  mySpacing 8 $ ResizableTall 1 (3/100) (1/2) []
 
   -- Mirrored variation of ResizableTall. In this layout, the large
   -- master window is at the top, and remaining windows tile at the
@@ -239,7 +249,7 @@ myKeyBindings =
 myManagementHooks :: [ManageHook]
 myManagementHooks = [
   resource =? "synapse" --> doIgnore
-  , resource =? "stalonetray" --> doIgnore
+  , resource =? "trayer" --> doIgnore
   , className =? "rdesktop" --> doFloat
   , className =? "Gnome-calculator" --> doFloat
   , (className =? "Slack") --> doF (W.shift "6:chat")

@@ -35,16 +35,20 @@ xcompmgr -n &
 # SCREEN CONFIGURATION
 #
 
-# Default icon slot size for tray icons...
-# We can adjust this parameter if necessary depending on the
-# screen we end up using, to avoid gaps between xmobar and stalonetray.
-# Note that right now we use the same size either way, the need for this
-# varies depending on your screen!
-STALONETRAY_SLOT_SIZE=29
+# Trayer
+trayer \
+  --monitor "primary" \
+  --edge top \
+  --align right \
+  --widthtype percent \
+  --width 7 \
+  --transparent true \
+  --tint 0x000000 \
+  --alpha 0
 
 # Activate primary screen 
-xrandr --output DP-4 --auto --primary
-xrandr --output DP-2 --auto --secondary
+xrandr --output DP-2 --auto --primary
+xrandr --output DP-4 --auto --secondary
 
 xrandr --output DP-4 --right-of DP-2
 
@@ -58,21 +62,6 @@ nitrogen --restore &
 #
 # STARTUP ICON TRAY
 #
-
-# We are using stalonetray to create a small icon tray at the
-# top right of the screen. You are likely to want to tweak the
-# size of the icons and the width of the tray based upon the
-# size of your screen and your xmobar configuration. The goal is
-# to make stalonetray look like it is part of xmobar.
-# 
-# Edit configuration in ~/.xmonad/stalonetrayrc if needed.
-# The one option we set here is the slot size, which you can vary
-# depending on your screen setup with STALONETRAY_SLOT_SIZE as shown above
-stalonetray \
-  -c ~/.xmonad/stalonetrayrc \
-  --slot-size $STALONETRAY_SLOT_SIZE \
-&
-
 # Run the gnome-keyring-daemon to avoid issues you otherwise may encounter
 # when using gnome applications which expect access to the keyring, such
 # as Empathy. This prevents prompts you may otherwise get for invalid
