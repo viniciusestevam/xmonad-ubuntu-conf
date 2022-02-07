@@ -79,6 +79,9 @@ gnome-keyring-daemon --start --components=gpg,pkcs11,secrets,ssh
 # Change the default X cursor away from the "X"
 xsetroot -cursor_name left_ptr
 
+
+setxkbmap us
+
 # Now, finally, start xmonad
 exec xmonad
 

@@ -145,45 +145,6 @@ myLayouts =
 
 
 {-
-  Custom keybindings. In this section we define a list of relatively
-  straightforward keybindings. This would be the clearest place to
-  add your own keybindings, or change the keys we have defined
-  for certain functions.
-
-  It can be difficult to find a good list of keycodes for use
-  in xmonad. I have found this page useful -- just look
-  for entries beginning with "xK":
-
-  http://xmonad.org/xmonad-docs/xmonad/doc-index-X.html
-
-  Note that in the example below, the last three entries refer
-  to nonstandard keys which do not have names assigned by
-  xmonad. That's because they are the volume and mute keys
-  on my laptop, a Lenovo T430.
-
-  If you have special keys on your keyboard which you
-  want to bind to specific actions, you can use the "xev"
-  command-line tool to determine the code for a specific key.
-  Launch the command, then type the key in question and watch
-  the output.
--}
-
-myKeyBindings =
-  [
-    ((myModMask, xK_b), sendMessage ToggleStruts)
-    , ((myModMask, xK_a), sendMessage MirrorShrink)
-    , ((myModMask, xK_z), sendMessage MirrorExpand)
-    , ((myModMask, xK_p), spawn "synapse")
-    , ((myModMask .|. shiftMask, xK_l), spawn "slock")
-    , ((myModMask .|. mod1Mask, xK_space), spawn "synapse")
-    , ((myModMask, xK_u), focusUrgent)
-    , ((0, 0x1008FF12), spawn "amixer -q set Master toggle")
-    , ((0, 0x1008FF11), spawn "amixer -q set Master 10%-")
-    , ((0, 0x1008FF13), spawn "amixer -q set Master 10%+")
-  ]
-
-
-{-
   Management hooks. You can use management hooks to enforce certain
   behaviors when specific programs or windows are launched. This is
   useful if you want certain windows to not be managed by xmonad,
@@ -241,6 +202,11 @@ myManagementHooks = [
   content into it via the logHook.
 -}
 
+myKeys :: [(String, X ())]
+myKeys = [
+    ("M-C-r", spawn "xmonad --recompile")       -- Recompiles xmonad
+  , ("M-S-r", spawn "xmonad --restart")
+  , ("M-S-k", spawn "chkb")]
 
 main = do
   xmproc1 <- spawnPipe "xmobar ~/.xmonad/xmobarrc"
@@ -287,4 +253,4 @@ main = do
       , ppSep = "                       "
       , ppOrder  = id
     }
-  }
+  } `additionalKeysP` myKeys
